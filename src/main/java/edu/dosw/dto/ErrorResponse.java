@@ -1,4 +1,4 @@
-package edu.dosw.application.dto;
+package edu.dosw.dto;
 
 import java.time.LocalDateTime;
 

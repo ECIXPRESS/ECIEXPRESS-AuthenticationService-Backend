@@ -1,6 +1,6 @@
 package edu.dosw.exception;
 
-import edu.dosw.application.dto.ErrorResponse;
+import edu.dosw.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
@@ -36,6 +36,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles authentication failures
+     *
+     * @param ex The AuthenticationException that was thrown
+     * @param request The HTTP request that caused the exception
+     * @return ResponseEntity with error details
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            AuthenticationException ex, HttpServletRequest request) {
+        logger.warn("Authentication error at {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(
+                HttpStatus.UNAUTHORIZED, "AUTHENTICATION_ERROR", ex.getMessage(), request.getRequestURI());
+    }
+
+    /**
      * Handles requests for resources that cannot be found
      *
      * @param ex The ResourceNotFoundException that was thrown
@@ -63,6 +78,21 @@ public class GlobalExceptionHandler {
         logger.error("Conflict at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         return buildResponse(
                 HttpStatus.CONFLICT, "RESOURCE_ALREADY_EXISTS", ex.getMessage(), request.getRequestURI());
+    }
+
+    /**
+     * Handles service unavailability errors
+     *
+     * @param ex The ServiceUnavailableException that was thrown
+     * @param request The HTTP request that caused the exception
+     * @return ResponseEntity with error details
+     */
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleServiceUnavailable(
+            ServiceUnavailableException ex, HttpServletRequest request) {
+        logger.error("Service unavailable at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        return buildResponse(
+                HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE", ex.getMessage(), request.getRequestURI());
     }
 
     /**
@@ -139,7 +169,6 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
-
     /**
      * Handles data integrity violations (e.g., duplicate keys, foreign key constraints)
      *
@@ -156,6 +185,24 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT,
                 "DATA_INTEGRITY_ERROR",
                 "Error de integridad de datos: " + ex.getMostSpecificCause().getMessage(),
+                request.getRequestURI());
+    }
+
+    /**
+     * Handles illegal argument exceptions
+     *
+     * @param ex The IllegalArgumentException that was thrown
+     * @param request The HTTP request that caused the exception
+     * @return ResponseEntity with error details
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+            IllegalArgumentException ex, HttpServletRequest request) {
+        logger.warn("Illegal argument at {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "INVALID_ARGUMENT",
+                ex.getMessage(),
                 request.getRequestURI());
     }
 
@@ -190,16 +237,5 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse =
                 new ErrorResponse(status.value(), status.getReasonPhrase(), code, message, path);
         return new ResponseEntity<>(errorResponse, status);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(
-            IllegalArgumentException ex, HttpServletRequest request) {
-        logger.warn("Illegal argument at {}: {}", request.getRequestURI(), ex.getMessage());
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                "INVALID_ARGUMENT",
-                ex.getMessage(),
-                request.getRequestURI());
     }
 }
