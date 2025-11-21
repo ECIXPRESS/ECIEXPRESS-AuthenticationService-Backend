@@ -25,7 +25,7 @@ public class AuthenticationService {
     private final UserServiceClient userServiceClient;
     private final JwtUtil jwtUtil;
     private final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
-
+    private final EventPublisherService eventPublisherService;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public AuthResponseDto logIn(LogInDTO logInDTO) {
@@ -67,6 +67,19 @@ public class AuthenticationService {
 
             UserInfoDto userInfo = new UserInfoDto(user.userId(), user.email(), user.role(), user.pfpURL());
 
+            try {
+                String userName = extractNameFromEmail(user.email());
+                eventPublisherService.publishLoginSuccess(
+                        user.email(),
+                        user.userId(),
+                        userName,
+                        getClientIp()
+                );
+                logger.info("Evento de login exitoso publicado para: {}", user.email());
+            } catch (Exception e) {
+                logger.error("Error publicando evento de login (login continua): {}", e.getMessage());
+            }
+
             logger.info("=== LOGIN SUCCESSFUL ===");
             logger.info("User: {}, Role: {}, UserId: {}", user.email(), user.role(), user.userId());
 
@@ -78,6 +91,16 @@ public class AuthenticationService {
             logger.error("Login failed with error: {}", e.getMessage(), e);
             throw new AuthenticationException("Login failed: " + e.getMessage());
         }
+    }
+
+
+    private String extractNameFromEmail(String email) {
+        String namePart = email.split("@")[0];
+        return namePart.substring(0, 1).toUpperCase() + namePart.substring(1);
+    }
+
+    private String getClientIp() {
+        return "190.85.250.100";
     }
 
     public boolean validateToken(String token) {
