@@ -33,6 +33,7 @@ public class AuthenticationService {
 
         logger.info("=== LOGIN ATTEMPT STARTED ===");
         logger.info("Email: {}", email);
+        logger.info("Connecting via API Gateway: https://api-gateway-despliegue.onrender.com");
 
         if (!isValidEmail(email)) {
             logger.error("Invalid email format: {}", email);
@@ -40,7 +41,7 @@ public class AuthenticationService {
         }
 
         try {
-            logger.info("Getting user by email: {}", email);
+            logger.info("Getting user by email via API Gateway: {}", email);
             Optional<UserCredentialsDto> userCredentials = userServiceClient.getUserByEmail(email);
 
             if (userCredentials.isEmpty()) {
@@ -49,7 +50,7 @@ public class AuthenticationService {
             }
 
             UserCredentialsDto user = userCredentials.get();
-            logger.info("User found: {} with role: {}", user.email(), user.role());
+            logger.info("User found via Gateway: {} with role: {}", user.email(), user.role());
             logger.info("Stored password hash: {}", user.password());
 
             logger.info("Validating password...");
@@ -82,6 +83,7 @@ public class AuthenticationService {
 
             logger.info("=== LOGIN SUCCESSFUL ===");
             logger.info("User: {}, Role: {}, UserId: {}", user.email(), user.role(), user.userId());
+            logger.info("Successfully authenticated via API Gateway");
 
             return new AuthResponseDto(token, refreshToken, userInfo, jwtUtil.getExpirationTime());
 
@@ -92,7 +94,6 @@ public class AuthenticationService {
             throw new AuthenticationException("Login failed: " + e.getMessage());
         }
     }
-
 
     private String extractNameFromEmail(String email) {
         String namePart = email.split("@")[0];
@@ -131,10 +132,10 @@ public class AuthenticationService {
             String userId = jwtUtil.extractUserId(refreshToken);
             Role role = jwtUtil.extractRole(refreshToken);
 
-
+            logger.info("Refreshing token for user via API Gateway: {}", email);
             Optional<UserCredentialsDto> userCredentials = userServiceClient.getUserByEmail(email);
             if (userCredentials.isEmpty()) {
-                throw new AuthenticationException("User not found");
+                throw new AuthenticationException("User not found via API Gateway");
             }
 
             String newAccessToken = jwtUtil.generateToken(userId, email, role);
@@ -156,9 +157,10 @@ public class AuthenticationService {
     }
 
     public UserInfoDto getUserInfo(String email) {
+        logger.info("Getting user info via API Gateway: {}", email);
         Optional<UserCredentialsDto> userCredentials = userServiceClient.getUserByEmail(email);
         if (userCredentials.isEmpty()) {
-            throw new ResourceNotFoundException("User not found with email: " + email);
+            throw new ResourceNotFoundException("User not found via API Gateway with email: " + email);
         }
 
         UserCredentialsDto user = userCredentials.get();
@@ -166,10 +168,12 @@ public class AuthenticationService {
     }
 
     public Optional<UserCredentialsDto> getByEmail(String email) {
+        logger.info("Getting user by email via API Gateway: {}", email);
         return userServiceClient.getUserByEmail(email);
     }
 
     public Optional<UserCredentialsDto> getByUserId(String id) {
+        logger.info("Getting user by ID via API Gateway: {}", id);
         return userServiceClient.getUserById(id);
     }
 
