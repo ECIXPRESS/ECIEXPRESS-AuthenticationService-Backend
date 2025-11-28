@@ -21,7 +21,7 @@ public class UserServiceClient {
     private final RestTemplate restTemplate;
     private final Logger logger = LoggerFactory.getLogger(UserServiceClient.class);
 
-    @Value("${gateway.url:http://localhost:8081/api}")
+    @Value("${gateway.url:https://api-gateway-despliegue.onrender.com/api}")
     private String gatewayBaseUrl;
 
     public Optional<UserCredentialsDto> getUserByEmail(String email) {
