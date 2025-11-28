@@ -93,7 +93,6 @@ public class AuthenticationService {
         }
     }
 
-
     private String extractNameFromEmail(String email) {
         String namePart = email.split("@")[0];
         return namePart.substring(0, 1).toUpperCase() + namePart.substring(1);
@@ -130,7 +129,6 @@ public class AuthenticationService {
             String email = jwtUtil.extractUsername(refreshToken);
             String userId = jwtUtil.extractUserId(refreshToken);
             Role role = jwtUtil.extractRole(refreshToken);
-
 
             Optional<UserCredentialsDto> userCredentials = userServiceClient.getUserByEmail(email);
             if (userCredentials.isEmpty()) {
