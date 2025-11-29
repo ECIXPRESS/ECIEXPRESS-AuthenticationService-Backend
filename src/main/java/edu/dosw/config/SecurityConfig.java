@@ -29,20 +29,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Permitir tanto el gateway de producción como el local
-        configuration.setAllowedOrigins(Arrays.asList(
-                "https://api-gateway-despliegue.onrender.com",
-                "http://localhost:8081",
-                "http://localhost:3000",
-                "http://127.0.0.1:8081",
-                "http://127.0.0.1:3000"
-        ));
-
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(Arrays.asList("Authorization")); // Exponer headers personalizados
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -58,10 +48,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/auth/login", "/auth/validate", "/auth/refresh",
                                 "/auth/extract-username", "/swagger-ui/**",
-                                "/v3/api-docs/**", "/swagger-resources/**",
-                                "/health", "/actuator/health", "/error").permitAll() // Agregar health endpoints
+                                "/v3/api-docs/**", "/swagger-resources/**").permitAll()
                         .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
